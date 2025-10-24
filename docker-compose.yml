@@ -1,0 +1,58 @@
+version: '3.8'
+
+services:
+
+  # 1. MongoDB Database Service
+  mongodb:
+    image: mongo:latest
+    container_name: mongodb
+    # Maps container port 27017 to host port 27017 (for external tools like MongoDB Compass)
+    ports:
+      - "27017:27017"
+    # Persists data to a named volume on the host machine
+    volumes:
+      - mongo-data:/data/db
+    restart: always
+
+  # 2. Express/Node Backend Service
+  backend:
+    build:
+      context: ./server
+      dockerfile: Dockerfile
+    container_name: mern-backend
+    # Maps container port 5050 to host port 5050
+    ports:
+      - "5050:5050"
+    # Wait for the database to be healthy before starting
+    depends_on:
+      - mongodb
+    # Inject environment variables (replaces config.env)
+    environment:
+      # CRITICAL: Use the service name 'mongodb' instead of localhost/host.docker.internal
+      ATLAS_URI: mongodb+srv://sluu123_db_user:uuuYahsEeC6yaXpw@cluster0.i4ox9wb.mongodb.net/employees?retryWrites=true&w=majority
+      PORT: 5050
+    # Mount server code for hot-reloading during development
+    volumes:
+      - ./server:/usr/src/app
+    restart: always
+
+  # 3. React/Vite Frontend Service
+  frontend:
+    build:
+      context: ./client
+      dockerfile: Dockerfile
+    container_name: mern-frontend
+    ports:
+      - "3000:5173"
+    depends_on:
+      - backend
+    volumes:
+      - ./client:/app
+      # This line tells Docker to use the node_modules installed *inside* the container,
+      # ignoring anything that might be in the host's node_modules folder.
+      - /app/node_modules
+    restart: always
+
+volumes:
+  # Define the named volume for persistent MongoDB data
+  mongo-data:
