@@ -1,5 +1,6 @@
 import { useState, useEffect, type FormEvent, type ChangeEvent } from "react";
 import { useParams, useNavigate } from "react-router-dom";
+import { API_RECORD_PATH } from "../config/api";
 
 // Define the interface for the form's state
 interface FormState {
@@ -24,7 +25,7 @@ export default function Record() {
       if(!id) return;
       setIsNew(false);
       const response = await fetch(
-        `http://localhost:5050/record/${params?.id?.toString()}`
+        `${API_RECORD_PATH}/${params?.id?.toString()}`
       );
       if (!response.ok) {
         const message = `An error has occurred: ${response.statusText}`;
